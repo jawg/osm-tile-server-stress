@@ -1,0 +1,88 @@
+# Mac Development Fle
+# #####################
+**/project.xcworkspace/**
+**/xcuserdata/**
+
+# Web Development File
+# ########################
+**/node_modules/
+**/bower_components/
+**/app/bower_components/
+**/target/**/dist/
+**/.tmp/
+**/.sass-cache
+**/test-results.xml
+
+# Local configuration file (sdk path, etc)
+# ############################################
+local.properties
+project.properties
+build.xml
+proguard-project.txt
+
+# Built application files 
+# ########################### 
+*.apk
+*.ap_
+
+# Generated files 
+# ################### 
+bin/
+gen/
+build/
+
+# Eclipse project files
+# #########################
+.classpath
+.project
+.settings/
+proguard/
+
+# Intellij project files 
+# ########################## 
+*.iml
+*.eml
+*.ipr
+*.iws
+*.userlibraries
+.idea/
+.gradle/
+
+# Compiled source 
+# ################### 
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# OS generated files 
+# ###################### 
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+
+# Other
+# #########
+tmp/
+**/*.orig
+
+docker/target.war
+web/node_modules/
+
+*/app/.buildignore
+*/app/.htaccess
+.editorconfig
+.gitattributes
+.jshintrc
+.travis.yml
+
+target/
+
+*.mp4
+
+*~
+
