@@ -20,7 +20,7 @@ Scala plugin for IntelliJ platform also helps.
  * Set your environment properties in {projectRoot}/src/test/resources  
  Properties are server.url, simulation.usercount...  
  * Browse the project root and execute the following command  
- ```sbt testOnly io.mapsquare.OsmSimulation```sh
+ ```sbt "testOnly io.mapsquare.OsmSimulation"```sh
 
 
 ## License
