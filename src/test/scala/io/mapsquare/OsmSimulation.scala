@@ -152,7 +152,7 @@ class OsmSimulation extends Simulation {
 
   val scn = scenario("OsmSimulation")
     .feed(csv(CSV_FILE).circular)
-    .feed(csv("seeds.csv").circular) // FIXME Déterminer la taille à l'avance
+    .feed(csv("seeds.csv").circular)
     .exec(Transformations.randomLatitudes)
     .exec(OsmRequestBuilder.applyPaths)
 
@@ -160,5 +160,4 @@ class OsmSimulation extends Simulation {
     scn.inject(
       rampUsers(USERS) over RAMP_TIME))
     .protocols(httpProtocol)
-    .disablePauses
 }
