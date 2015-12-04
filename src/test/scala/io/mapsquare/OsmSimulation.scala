@@ -12,7 +12,7 @@
  */
 package io.mapsquare
 
-import java.util.concurrent.ThreadLocalRandom
+import java.util.Random
 
 import com.typesafe.config.ConfigFactory
 import io.gatling.core.Predef._
@@ -25,7 +25,6 @@ import scala.math._
 
 object Parameters {
   val properties = ConfigFactory.load("parameters.properties")
-  //load from .properties file here.
 
   // Url of the server to stress test
   val SERVER_URL = properties.getString("server.url")
@@ -90,7 +89,8 @@ object Transformations {
     }
 
   def randomLatitudes: Expression[Session] = { session =>
-    val rand = ThreadLocalRandom.current
+    val seed = session("seed").as[String].toLong
+    val rand = new Random(seed)
 
     val latMin = session("LatMin").as[String].toDouble
     val latMax = session("LatMax").as[String].toDouble
@@ -125,8 +125,9 @@ object OsmRequestBuilder {
     val rawQueries = for {
       index <- 0 until TilesToFetch
     } yield {
+        val queryName = s"$${Region} $${imagesByCoords(currentCoord)($index)}"
         val queryString = s"$${imagesByCoords(currentCoord)($index)}"
-        http("${Region}").get(queryString)
+        http(queryName).get(queryString)
       }
 
     rawQueries.head.resources(rawQueries.tail: _*)
@@ -151,6 +152,7 @@ class OsmSimulation extends Simulation {
 
   val scn = scenario("OsmSimulation")
     .feed(csv(CSV_FILE).circular)
+    .feed(csv("seeds.csv").circular) // FIXME Déterminer la taille à l'avance
     .exec(Transformations.randomLatitudes)
     .exec(OsmRequestBuilder.applyPaths)
 
