@@ -19,8 +19,9 @@ Scala plugin for IntelliJ platform also helps.
  ```git clone https://github.com/mapsquare/openstreetmap-tile-server-stress.git```sh  
  * Set your environment properties in {projectRoot}/src/test/resources  
  Properties are server.url, simulation.usercount...  
- * Browse the project root and execute the following command  
- ```sbt "testOnly io.mapsquare.OsmSimulation"```sh
+ * Browse the project root and execute the following commands  
+ ```sbt "run-main io.mapsquare.GenerateSeedsCsv"``` to generate seeds for all simulated users. Skip this step if you want to use a custom seeds file or keep the previous one and produce the exact same test.  
+ ```sbt "testOnly io.mapsquare.OsmSimulation"``` to run the stress test.
 
 
 ## License
