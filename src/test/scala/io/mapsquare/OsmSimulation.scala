@@ -125,7 +125,7 @@ object OsmRequestBuilder {
     val rawQueries = for {
       index <- 0 until TilesToFetch
     } yield {
-        val queryName = s"$${Region} $${imagesByCoords(currentCoord)($index)}"
+        val queryName = s"$${Region}"
         val queryString = s"$${imagesByCoords(currentCoord)($index)}"
         http(queryName).get(queryString)
       }
