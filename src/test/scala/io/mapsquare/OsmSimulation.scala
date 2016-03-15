@@ -67,11 +67,12 @@ object Transformations {
     def %%(b: Int) = (a % b + b) % b
   }
 
-  private def lat2y(lng: Double, z: Int): Int =
-    ((lng + 180.0) / 360.0 * (1 << z)).toInt
-
-  private def lng2x(lat: Double, z: Int): Int =
+  private def lat2y(lat: Double, z: Int): Int =
     ((1 - log(tan(toRadians(lat)) + 1 / cos(toRadians(lat))) / Pi) / 2.0 * (1 << z)).toInt
+
+
+  private def lng2x(lng: Double, z: Int): Int =
+    ((lng + 180.0) / 360.0 * (1 << z)).toInt
 
   private def setOfImagesByCoords(coords: Seq[Coord]): Seq[Seq[String]] =
     coords.map { coord =>
@@ -97,8 +98,8 @@ object Transformations {
     val lngMin = session("LngMin").as[String].toDouble
     val lngMax = session("LngMax").as[String].toDouble
 
-    val lat = (rand.nextDouble() * 1000) % (lngMax - lngMin) + lngMin
-    val lng = (rand.nextDouble() * 1000) % (latMax - latMin) + latMin
+    val lng = rand.nextDouble() * (lngMax - lngMin) + lngMin
+    val lat = rand.nextDouble() * (latMax - latMin) + latMin
 
     val randZoom =
       if ((MAX_START_ZOOM - MIN_START_ZOOM) > 0)
