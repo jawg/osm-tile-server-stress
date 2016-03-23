@@ -15,6 +15,8 @@ Scala plugin for IntelliJ platform also helps.
 
 ### How to use
 
+This script has been tested and approved by both Gatling and Gatling Frontline solutions.
+
  * Clone the project  
  ```git clone https://github.com/mapsquare/openstreetmap-tile-server-stress.git```sh  
  * Set your environment properties in {projectRoot}/src/test/resources  
@@ -26,7 +28,7 @@ Scala plugin for IntelliJ platform also helps.
 
 ## License
 
-Copyright 2015 eBusiness Information
+Copyright 2016 eBusiness Information
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
