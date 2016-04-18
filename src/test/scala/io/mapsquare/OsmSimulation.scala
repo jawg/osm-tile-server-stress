@@ -24,10 +24,13 @@ import scala.concurrent.duration._
 import scala.math._
 
 object Parameters {
-  val properties = ConfigFactory.load("parameters.properties")
+
+  val propertiesFromSystem = ConfigFactory.systemProperties()
+  val propertiesFromFile = ConfigFactory.load("parameters.properties")
+  val properties = propertiesFromSystem.withFallback(propertiesFromFile)
 
   // Url of the server to stress test
-  val SERVER_URL = properties.getString("server.url")
+  val SERVER_URLS = properties.getString("server.urls").trim().split(",").toList
 
   // File to load containing the region rectangles where users will choose their initial latitudes and longitudes.
   // sample.csv contains an example of the format used.
@@ -121,7 +124,7 @@ object OsmRequestBuilder {
   import Parameters._
 
   val TilesToFetch = WIDTH * HEIGHT
-  
+
   val queries = {
     val rawQueries = for {
       index <- 0 until TilesToFetch
@@ -149,7 +152,7 @@ class OsmSimulation extends Simulation {
   import Parameters._
 
   val httpProtocol = http
-    .baseURL(SERVER_URL)
+    .baseURLs(SERVER_URLS)
 
   val scn = scenario("OsmSimulation")
     .feed(csv(CSV_FILE).circular)
