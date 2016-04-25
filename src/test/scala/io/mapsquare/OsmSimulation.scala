@@ -17,7 +17,7 @@ import java.util.Random
 import com.typesafe.config.ConfigFactory
 import io.gatling.core.Predef._
 import io.gatling.core.session.Expression
-import io.gatling.core.structure.ChainBuilder
+import io.gatling.core.structure.{ChainBuilder, PopulatedScenarioBuilder}
 import io.gatling.http.Predef._
 
 import scala.concurrent.duration._
@@ -43,8 +43,9 @@ object Parameters {
   val MIN_START_ZOOM = properties.getString("simulation.map.zoom.start.min").toInt
   val MAX_START_ZOOM = properties.getString("simulation.map.zoom.start.max").toInt
 
-  // Zoom will end at this value
-  val MAX_ZOOM = properties.getString("simulation.map.zoom.max").toInt
+  // Zoom will end between these values
+  val MIN_END_ZOOM = properties.getString("simulation.map.zoom.end.min").toInt
+  val MAX_END_ZOOM = properties.getString("simulation.map.zoom.end.max").toInt
 
   // Size of the fetched tile matrix, should match the amount of tiles loaded at once on a browser screen.
   val WIDTH = properties.getString("simulation.map.width").toInt
@@ -53,8 +54,9 @@ object Parameters {
   // Users amount can be ramped up over this duration in seconds
   val RAMP_TIME = properties.getString("simulation.users.ramp.time").toInt.seconds
 
-  // Amount of time a user will wait between zooms.
-  val THINK_TIME = properties.getString("simulation.users.idle.time").toInt.seconds
+  // Amount of time a user will wait between zooms will be between these values.
+  val MIN_THINK_TIME = properties.getString("simulation.users.idle.time.min").toInt.seconds
+  val MAX_THINK_TIME = properties.getString("simulation.users.idle.time.max").toInt.seconds
 
   // Note :
   // The time units can be specified, for instance 1.minute, 1000.millis, etc
@@ -104,16 +106,30 @@ object Transformations {
     val lng = rand.nextDouble() * (lngMax - lngMin) + lngMin
     val lat = rand.nextDouble() * (latMax - latMin) + latMin
 
-    val randZoom =
+    val randStartZoom =
       if ((MAX_START_ZOOM - MIN_START_ZOOM) > 0)
         rand.nextInt(MAX_START_ZOOM - MIN_START_ZOOM) + MIN_START_ZOOM
       else MIN_START_ZOOM
 
+    val trueMinEndZoom = math.max(MIN_END_ZOOM,MAX_START_ZOOM)
+    val randEndZoom =
+      if ((MAX_END_ZOOM - trueMinEndZoom) > 0)
+        rand.nextInt(MAX_END_ZOOM - trueMinEndZoom) + trueMinEndZoom
+      else trueMinEndZoom
+
     val coords = for {
-      z <- randZoom until MAX_ZOOM
+      z <- randStartZoom until randEndZoom
     } yield Coord(lng2x(lng, z), lat2y(lat, z), z)
 
-    session.set("imagesByCoords", setOfImagesByCoords(coords))
+    val maxThinkTime = MAX_THINK_TIME.toSeconds.toInt
+    val minThinkTime = MIN_THINK_TIME.toSeconds.toInt
+
+    val thinkTime =
+      if ((maxThinkTime - minThinkTime) > 0)
+        rand.nextInt(maxThinkTime - minThinkTime) + minThinkTime
+      else minThinkTime
+
+    session.set("thinkTime", thinkTime).set("imagesByCoords", setOfImagesByCoords(coords))
   }
 }
 
@@ -143,7 +159,7 @@ object OsmRequestBuilder {
         queries.check(
           status.is(200),
           header("Content-Type").is("image/png"))
-      }.pause(THINK_TIME)
+      }.pause("${thinkTime}")
     }
 }
 
@@ -152,16 +168,19 @@ class OsmSimulation extends Simulation {
   import Parameters._
 
   val httpProtocol = http
-    .baseURLs(SERVER_URLS)
+    .shareConnections
+  val random = new util.Random
 
-  val scn = scenario("OsmSimulation")
-    .feed(csv(CSV_FILE).circular)
-    .feed(csv("seeds.csv").circular)
-    .exec(Transformations.randomLatitudes)
-    .exec(OsmRequestBuilder.applyPaths)
+  def scenarios(urls: List[String]): List[PopulatedScenarioBuilder] =
+    urls.map {url =>
+      scenario("OsmSimulation " + url + " " + random.nextInt.toString)
+        .feed(csv(CSV_FILE).circular)
+        .feed(csv("seeds.csv").circular)
+        .exec(Transformations.randomLatitudes)
+        .exec(OsmRequestBuilder.applyPaths)
+        .inject(rampUsers(math.ceil(USERS.toDouble / urls.size).toInt) over RAMP_TIME)
+        .protocols(httpProtocol.baseURL(url))
+    }
 
-  setUp(
-    scn.inject(
-      rampUsers(USERS) over RAMP_TIME))
-    .protocols(httpProtocol)
+  setUp(scenarios(SERVER_URLS))
 }
